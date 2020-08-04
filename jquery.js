@@ -1,7 +1,9 @@
+const { contains } = require("jquery");
+
 window.$ = window.jQuery = (selectorOrArrayOrTemplateOrDom) => {
     let elements;
     // 不同参数适配
-    if (selectorOrArrayOrTemplateOrDom[0] === "<") {
+    if (typeof selectorOrArrayOrTemplateOrDom === 'string' && selectorOrArrayOrTemplateOrDom.trim()[0] === "<") {
         const template = document.createElement('template');
         template.innerHTML = selectorOrArrayOrTemplateOrDom.trim();
         elements = [template.content.firstChild]
@@ -199,9 +201,19 @@ jQuery.fn = jQuery.prototype = {
             })
         }
     },
-    on(event, fn) {
+    on(event, selector, fn) {
         this.each(el => {
-            el.addEventListener(event, fn);
+            el.addEventListener(event, function(e) {
+                element = e.target;
+                while (!(element.matches(selector))) {
+                    if (el === element) {
+                        element = null;
+                        break;
+                    }
+                    element = element.parentNode;
+                }
+                element && fn(e)
+            })
         })
     },
     off(event, fn) {
