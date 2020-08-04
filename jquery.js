@@ -11,7 +11,7 @@ window.$ = window.jQuery = (selectorOrArrayOrTemplateOrDom) => {
         elements = selectorOrArrayOrTemplateOrDom;
     } else if (selectorOrArrayOrTemplateOrDom.nodeType === 1) {
         elements = [selectorOrArrayOrTemplateOrDom]
-    } else if (selectorOrArrayOrTemplateOrDom instanceof jQuery) {
+    } else if (selectorOrArrayOrTemplateOrDom.jquery === true) {
         elements = selectorOrArrayOrTemplateOrDom.elements;
     }
     // 创建原型
@@ -24,6 +24,7 @@ window.$ = window.jQuery = (selectorOrArrayOrTemplateOrDom) => {
 }
 jQuery.fn = jQuery.prototype = {
     constractor: jQuery,
+    jquery: true,
     addClass(className) {
         for (let i = 0; i < this.elements.length; i++) {
             this.elements[i].classList.add(className);
@@ -41,7 +42,7 @@ jQuery.fn = jQuery.prototype = {
         return index;
     },
     get(index) {
-        return $(this.elements[index]);
+        return this.elements[index];
     },
     find(selector) {
         let elementList = [];
@@ -117,12 +118,24 @@ jQuery.fn = jQuery.prototype = {
         }
         return jQuery(nextList);
     },
-    appendTo(selector) {
-        let parent = document.querySelectorAll(selector);
-        this.each(el => {
-            parent.appendChild(el);
-        })
-        return this;
+    appendTo(node) {
+        if (node instanceof Element) {
+            this.each(el => node.appendChild(el));
+        } else if (node.jquery === true) {
+            this.each(el => node.get(0).appendChild(el))
+        }
+    },
+    append(children) {
+        if (children instanceof Element) {
+            this.get(0).appendChild(children);
+        } else if (children instanceof HTMLCollection) {
+            for (let item of children) {
+                this.get(0).appendChild(item);
+            }
+        } else if (children.jquery === true) {
+            console.log(this.get(0))
+            children.each(node => this.get(0).appendChild(node));
+        }
     },
     remove() {
         this.each(el => {
